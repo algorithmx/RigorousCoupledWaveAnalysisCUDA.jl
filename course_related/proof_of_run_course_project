@@ -1,0 +1,535 @@
+Script started on 2022-07-25 14:22:46+08:00 [TERM="xterm-256color" TTY="/dev/pts/3" COLUMNS="80" LINES="24"]
+[?2004h(base) ]0;dabajabaza@XXXX: ~[01;32mdabajabaza@XXXX[00m:[01;34m~[00m$ cd jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl/
+[?2004l[?2004h(base) ]0;dabajabaza@XXXX: ~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[01;32mdabajabaza@XXXX[00m:[01;34m~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[00m$ julia
+[?2004l               [1m[32m_[0m
+   [1m[34m_[0m       [0m_[0m [1m[31m_[1m[32m(_)[1m[35m_[0m     |  Documentation: https://docs.julialang.org
+  [1m[34m(_)[0m     | [1m[31m(_)[0m [1m[35m(_)[0m    |
+   [0m_ _   _| |_  __ _[0m   |  Type "?" for help, "]?" for Pkg help.
+  [0m| | | | | | |/ _` |[0m  |
+  [0m| | |_| | | | (_| |[0m  |  Version 1.7.2 (2022-02-06)
+ [0m_/ |\__'_|_|_|\__'_|[0m  |  Official https://julialang.org/ release
+[0m|__/[0m                   |
+
+[?2004h[0K[32m[1mjulia> [0m[0m[7C[7C[0K[0K[34m[1m(@v1.7) pkg> [0m[13C[13Cactivate .[0K[34m[1m(@v1.7) pkg> [0m[13Cactivate .[23C
+[?2004l[0m[32m[1m  Activating[22m[39m project at `~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl`
+
+[?2004h[0K[34m[1m(RigorousCoupledWaveAnalysisCUDA) pkg> [0m[39C[39Ctest[0K[34m[1m(RigorousCoupledWaveAnalysisCUDA) pkg> [0m[39Ctest[43C
+[?2004l[0m[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mThe active manifest file is an older format with no julia version entry. Dependencies may have been resolved with a different julia version.
+[33m[1m└ [22m[39m[90m@ ~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl/Manifest.toml:0[39m
+[32m[1m     Testing[22m[39m RigorousCoupledWaveAnalysisCUDA
+[32m[1m      Status[22m[39m `/tmp/jl_zCIJjJ/Project.toml`
+ [90m [336ed68f] [39mCSV v0.8.4
+ [90m [052768ef] [39mCUDA v3.12.0
+ [90m [a93c6f00] [39mDataFrames v0.22.5
+ [90m [7a1cc6ca] [39mFFTW v1.3.2
+ [90m [a98d9a8b] [39mInterpolations v0.13.1
+ [90m [c8f76c1c] [39mRigorousCoupledWaveAnalysisCUDA v1.0.2 `~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl`
+ [90m [276daf66] [39mSpecialFunctions v1.3.0
+ [90m [37e2e46d] [39mLinearAlgebra `@stdlib/LinearAlgebra`
+ [90m [2f01184e] [39mSparseArrays `@stdlib/SparseArrays`
+ [90m [8dfed614] [39mTest `@stdlib/Test`
+[32m[1m      Status[22m[39m `/tmp/jl_zCIJjJ/Manifest.toml`
+ [90m [621f4979] [39mAbstractFFTs v1.0.1
+ [90m [79e6a3ab] [39mAdapt v3.3.3
+ [90m [13072b0f] [39mAxisAlgorithms v1.0.1
+ [90m [ab4f0b2a] [39mBFloat16s v0.2.0
+ [90m [fa961155] [39mCEnum v0.4.2
+ [90m [336ed68f] [39mCSV v0.8.4
+ [90m [052768ef] [39mCUDA v3.12.0
+ [90m [324d7699] [39mCategoricalArrays v0.9.7
+ [90m [d360d2e6] [39mChainRulesCore v0.9.45
+ [90m [34da2185] [39mCompat v3.45.0
+ [90m [a8cc5b0e] [39mCrayons v4.1.1
+ [90m [9a962f9c] [39mDataAPI v1.10.0
+ [90m [a93c6f00] [39mDataFrames v0.22.5
+ [90m [864edb3b] [39mDataStructures v0.18.13
+ [90m [e2d170a0] [39mDataValueInterfaces v1.0.0
+ [90m [e2ba6199] [39mExprTools v0.1.8
+ [90m [7a1cc6ca] [39mFFTW v1.3.2
+ [90m [59287772] [39mFormatting v0.4.2
+ [90m [0c68f7d7] [39mGPUArrays v8.4.1
+ [90m [46192b85] [39mGPUArraysCore v0.1.0
+ [90m [61eb1bfa] [39mGPUCompiler v0.16.2
+ [90m [a98d9a8b] [39mInterpolations v0.13.1
+ [90m [41ab1584] [39mInvertedIndices v1.1.0
+ [90m [82899510] [39mIteratorInterfaceExtensions v1.0.0
+ [90m [692b3bcd] [39mJLLWrappers v1.4.1
+ [90m [682c06a0] [39mJSON v0.21.3
+ [90m [929cbde3] [39mLLVM v4.14.0
+ [90m [e1d29d7a] [39mMissings v0.4.5
+ [90m [6fe1bfb0] [39mOffsetArrays v1.12.7
+ [90m [bac558e1] [39mOrderedCollections v1.4.1
+ [90m [69de0a69] [39mParsers v1.1.2
+ [90m [2dfb63ee] [39mPooledArrays v1.4.2
+ [90m [21216c6a] [39mPreferences v1.3.0
+ [90m [08abe8d2] [39mPrettyTables v0.11.1
+ [90m [74087812] [39mRandom123 v1.5.0
+ [90m [e6cf234a] [39mRandomNumbers v1.5.3
+ [90m [c84ed2f1] [39mRatios v0.4.3
+ [90m [189a3867] [39mReexport v1.2.2
+ [90m [ae029012] [39mRequires v1.3.0
+ [90m [c8f76c1c] [39mRigorousCoupledWaveAnalysisCUDA v1.0.2 `~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl`
+ [90m [91c51154] [39mSentinelArrays v1.3.13
+ [90m [a2af1166] [39mSortingAlgorithms v0.3.1
+ [90m [276daf66] [39mSpecialFunctions v1.3.0
+ [90m [90137ffa] [39mStaticArrays v1.5.2
+ [90m [1e83bf80] [39mStaticArraysCore v1.0.1
+ [90m [856f2bd8] [39mStructTypes v1.8.1
+ [90m [3783bdb8] [39mTableTraits v1.0.1
+ [90m [bd369af6] [39mTables v1.7.0
+ [90m [a759f4b9] [39mTimerOutputs v0.5.20
+ [90m [efce3f68] [39mWoodburyMatrices v0.5.5
+ [90m [f5851436] [39mFFTW_jll v3.3.10+0
+ [90m [1d5cc7b8] [39mIntelOpenMP_jll v2018.0.3+2
+ [90m [dad2f222] [39mLLVMExtra_jll v0.0.16+0
+ [90m [856f044c] [39mMKL_jll v2021.1.1+2
+ [90m [efe28fd5] [39mOpenSpecFun_jll v0.5.5+0
+ [90m [0dad84c5] [39mArgTools `@stdlib/ArgTools`
+ [90m [56f22d72] [39mArtifacts `@stdlib/Artifacts`
+ [90m [2a0f44e3] [39mBase64 `@stdlib/Base64`
+ [90m [ade2ca70] [39mDates `@stdlib/Dates`
+ [90m [8bb1440f] [39mDelimitedFiles `@stdlib/DelimitedFiles`
+ [90m [8ba89e20] [39mDistributed `@stdlib/Distributed`
+ [90m [f43a241f] [39mDownloads `@stdlib/Downloads`
+ [90m [9fa8497b] [39mFuture `@stdlib/Future`
+ [90m [b77e0a4c] [39mInteractiveUtils `@stdlib/InteractiveUtils`
+ [90m [4af54fe1] [39mLazyArtifacts `@stdlib/LazyArtifacts`
+ [90m [b27032c2] [39mLibCURL `@stdlib/LibCURL`
+ [90m [76f85450] [39mLibGit2 `@stdlib/LibGit2`
+ [90m [8f399da3] [39mLibdl `@stdlib/Libdl`
+ [90m [37e2e46d] [39mLinearAlgebra `@stdlib/LinearAlgebra`
+ [90m [56ddb016] [39mLogging `@stdlib/Logging`
+ [90m [d6f4376e] [39mMarkdown `@stdlib/Markdown`
+ [90m [a63ad114] [39mMmap `@stdlib/Mmap`
+ [90m [ca575930] [39mNetworkOptions `@stdlib/NetworkOptions`
+ [90m [44cfe95a] [39mPkg `@stdlib/Pkg`
+ [90m [de0858da] [39mPrintf `@stdlib/Printf`
+ [90m [3fa0cd96] [39mREPL `@stdlib/REPL`
+ [90m [9a3f8284] [39mRandom `@stdlib/Random`
+ [90m [ea8e919c] [39mSHA `@stdlib/SHA`
+ [90m [9e88b42a] [39mSerialization `@stdlib/Serialization`
+ [90m [1a1011a3] [39mSharedArrays `@stdlib/SharedArrays`
+ [90m [6462fe0b] [39mSockets `@stdlib/Sockets`
+ [90m [2f01184e] [39mSparseArrays `@stdlib/SparseArrays`
+ [90m [10745b16] [39mStatistics `@stdlib/Statistics`
+ [90m [fa267f1f] [39mTOML `@stdlib/TOML`
+ [90m [a4e569a6] [39mTar `@stdlib/Tar`
+ [90m [8dfed614] [39mTest `@stdlib/Test`
+ [90m [cf7118a7] [39mUUIDs `@stdlib/UUIDs`
+ [90m [4ec0a83e] [39mUnicode `@stdlib/Unicode`
+ [90m [e66e0078] [39mCompilerSupportLibraries_jll `@stdlib/CompilerSupportLibraries_jll`
+ [90m [deac9b47] [39mLibCURL_jll `@stdlib/LibCURL_jll`
+ [90m [29816b5a] [39mLibSSH2_jll `@stdlib/LibSSH2_jll`
+ [90m [c8ffd9c3] [39mMbedTLS_jll `@stdlib/MbedTLS_jll`
+ [90m [14a3606d] [39mMozillaCACerts_jll `@stdlib/MozillaCACerts_jll`
+ [90m [4536629a] [39mOpenBLAS_jll `@stdlib/OpenBLAS_jll`
+ [90m [83775a58] [39mZlib_jll `@stdlib/Zlib_jll`
+ [90m [8e850b90] [39mlibblastrampoline_jll `@stdlib/libblastrampoline_jll`
+ [90m [8e850ede] [39mnghttp2_jll `@stdlib/nghttp2_jll`
+ [90m [3f19e933] [39mp7zip_jll `@stdlib/p7zip_jll`
+[32m[1mPrecompiling[22m[39m project...
+[?25l  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◓ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◑ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◒ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [>                                        ]  0/1
+  ◐ RigorousCoupledWaveAnalysisCUDA
+[2A[1G[0J  [36m[1mProgress[22m[39m [========================================>]  1/1
+[1A[1G[0J[?25h  1 dependency successfully precompiled in 16 seconds (60 already precompiled)
+[32m[1m     Testing[22m[39m Running tests...
+[0m[1mTest Summary:     | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+VerticalIncidence | [32m   3  [39m[36m    3[39m
+[0m[1mTest Summary:    | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+GrazingIncidence | [32m   6  [39m[36m    6[39m
+[0m[1mTest Summary: | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+Fabryperot    | [32m   4  [39m[36m    4[39m
+[0m[1mTest Summary: | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+unitySource   | [32m   2  [39m[36m    2[39m
+[0m[1mTest Summary:       | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+RT_ScatVSETM_simple | [32m   4  [39m[36m    4[39m
+[0m[1mTest Summary:                    | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+RT_ScatVSETM_conservation_simple | [32m   8  [39m[36m    8[39m
+WARNING: Method definition zshapegeo(Any, Any, Any) in module Main at /home/dabajabaza/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl/test/runtests.jl:128 overwritten at /home/dabajabaza/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl/test/runtests.jl:162.
+[0m[1mTest Summary:                 | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+ETM_algorithm_with_GPU_ma2018 | [32m  64  [39m[36m   64[39m
+[0m[1mTest Summary:                    | [22m[32m[1mPass  [22m[39m[36m[1mTotal[22m[39m
+ETM_algorithm_with_GPU_augel2018 | [32m  36  [39m[36m   36[39m
+[32m[1m     Testing[22m[39m RigorousCoupledWaveAnalysisCUDA tests passed 
+
+[?2004h[0K[34m[1m(RigorousCoupledWaveAnalysisCUDA) pkg> [0m[39C[39C[0K[0K[32m[1mjulia> [0m[0m[7C[7Cexit()[0K[32m[1mjulia> [0m[0m[7Cexit()[13C
+[?2004l[0m[?2004h(base) ]0;dabajabaza@XXXX: ~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[01;32mdabajabaza@XXXX[00m:[01;34m~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[00m$ cat test/runtests.jl | grep use_p[Kgpu""use_gpu"
+[?2004l    grd     = rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=true) # build a reciprocal space grid
+        grd          = rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=false) # build a reciprocal space grid
+    grd=rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=true)
+        grd=rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=false)
+    grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_H2O^2); [01;31m[Kuse_gpu[m[K=true) #reciprocal space grid
+        grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_H2O^2); [01;31m[Kuse_gpu[m[K=false) #reciprocal space grid
+    grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_CH3COOH^2); [01;31m[Kuse_gpu[m[K=true) #reciprocal space grid
+        grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_CH3COOH^2); [01;31m[Kuse_gpu[m[K=false)
+[?2004h(base) ]0;dabajabaza@XXXX: ~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[01;32mdabajabaza@XXXX[00m:[01;34m~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[00m$ cat test/runtests.jl | grep "use_gpu"-"use_gpu"C"use_gpu"4"use_gpu" "use_gpu"
+[?2004ltest_mode = true
+# iterate over all wavelengths
+for i=1:length(wls)
+    λ       = wls[i] # wavelength
+    grd     = rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=true) # build a reciprocal space grid
+    ste,stm = rcwasource(grd,1) #define source
+    Rlf[i], Tlf[i] = etm_reftra(sqrt(.5)*(stm+1im*ste),mdl,grd,λ) #lcp propagation
+    Rrf[i], Trf[i] = etm_reftra(sqrt(.5)*(1im*stm+ste),mdl,grd,λ) #rcp propagation
+    if test_mode
+        grd          = rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=false) # build a reciprocal space grid
+        ste,stm      = rcwasource(grd,1) #define source
+        Rlf_i, Tlf_i = etm_reftra(sqrt(.5)*(stm+1im*ste),mdl,grd,λ) #lcp propagation
+        Rrf_i, Trf_i = etm_reftra(sqrt(.5)*(1im*stm+ste),mdl,grd,λ) #rcp propagation
+        @test Rlf[i]≈Rlf_i
+[36m[K--[m[K
+Rlb=zeros(length(wls))#Backward lcp reflectivity
+Tlb=zeros(length(wls))#Backward lcp transmissivity
+for i=1:length(wls)
+    λ=wls[i]
+    grd=rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=true)
+    ste,stm=rcwasource(grd,1)
+    Rlb[i],Tlb[i]=etm_reftra(sqrt(.5)*(stm+1im*ste),mdl,grd,λ)
+    Rrb[i],Trb[i]=etm_reftra(sqrt(.5)*(1im*stm+ste),mdl,grd,λ)
+    if test_mode
+        grd=rcwagrid(N,N,a,a,1E-5,0,λ,air;[01;31m[Kuse_gpu[m[K=false)
+        ste,stm=rcwasource(grd,1)
+        Rlb_i,Tlb_i=etm_reftra(sqrt(.5)*(stm+1im*ste),mdl,grd,λ)
+        Rrb_i,Trb_i=etm_reftra(sqrt(.5)*(1im*stm+ste),mdl,grd,λ)
+        @test Rlb[i]≈Rlb_i
+[36m[K--[m[K
+A_CH3COOH=zeros(size(wls))
+test_mode = true
+for i=1:length(wls)
+    λ=wls[i] #get wavelength from array
+    grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_H2O^2); [01;31m[Kuse_gpu[m[K=true) #reciprocal space grid
+    ste,stm=rcwasource(grd) #te and tm source amplitudes
+    #compute for H2O
+    # compute ref, tra and power flows for te
+    R_H2O[i],T_H2O[i],flw=etm_reftra_flows(ste,build_model(n_H2O),grd,λ) 
+    # absorption is the power entering the last layer minus the power leaving the device
+    if test_mode
+        grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_H2O^2); [01;31m[Kuse_gpu[m[K=false) #reciprocal space grid
+        ste,stm=rcwasource(grd) #te and tm source amplitudes
+        #compute for H2O
+        # compute ref, tra and power flows for te
+        R_H2O_i,T_H2O_i,flw_c=etm_reftra_flows(ste,build_model(n_H2O),grd,λ) 
+[36m[K--[m[K
+        @test T_H2O_i ≈ T_H2O[i]
+        @test flw_c ≈ flw
+    end
+    #now same for CH3COOH
+    grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_CH3COOH^2); [01;31m[Kuse_gpu[m[K=true) #reciprocal space grid
+    ste,stm=rcwasource(grd) #te and tm source amplitudes
+    R_CH3COOH[i],T_CH3COOH[i],flw=etm_reftra_flows(ste,build_model(n_CH3COOH),grd,λ)
+    if test_mode
+        grd=rcwagrid(N,N,p,p,1E-5,0,λ,ConstantPerm(n_CH3COOH^2); [01;31m[Kuse_gpu[m[K=false)
+        ste,stm=rcwasource(grd)
+        R_CH3COOH_i,T_CH3COOH_i,flw_c=etm_reftra_flows(ste,build_model(n_CH3COOH),grd,λ)
+        @test R_CH3COOH_i ≈ R_CH3COOH[i]
+        @test T_CH3COOH_i ≈ T_CH3COOH[i]
+[?2004h(base) ]0;dabajabaza@XXXX: ~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[01;32mdabajabaza@XXXX[00m:[01;34m~/jianguoyun/Nutstore/RigorousCoupledWaveAnalysisCUDA.jl[00m$ exit
+[?2004lexit
+
+Script done on 2022-07-25 14:25:51+08:00 [COMMAND_EXIT_CODE="0"]
