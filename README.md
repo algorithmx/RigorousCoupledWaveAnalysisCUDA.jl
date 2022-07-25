@@ -1,10 +1,46 @@
-# RigorousCoupledWaveAnalysis.jl - Rigorous Coupled-Wave Analysis (RCWA)
+# RigorousCoupledWaveAnalysisCUDA.jl - Rigorous Coupled-Wave Analysis (RCWA)
 
-This implements both the scattering matrix and the enhanced transmission matrix RCWA algorithms in julia for periodic multilayer structures in nano-optics and RF.
+This implements both the scattering matrix and the Enhanced Transmission Matrix (ETM) RCWA algorithms (including the GPU counterpart) in julia for periodic multilayer structures in nano-optics and RF. 
 
-| Status | Coverage |
-| :----: | :----: |
-| [![Build Status](https://travis-ci.com/jonschlipf/RigorousCoupledWaveAnalysis.jl.svg?branch=master)](https://travis-ci.com/jonschlipf/RigorousCoupledWaveAnalysis.jl) | [![codecov.io](http://codecov.io/gh/jonschlipf/RigorousCoupledWaveAnalysis.jl/coverage.svg?branch=master)](http://codecov.io/gh/jonschlipf/RigorousCoupledWaveAnalysis.jl?branch=master) |
+## Remark on the course project of **["JHU@Coursera: CUDA Advanced Libraries"](https://www.coursera.org/learn/cuda-advanced-libraries/)**
+
+This is the course project for the course [CUDA Advanced Libraries](https://www.coursera.org/learn/cuda-advanced-libraries/). 
+**This package is originally developed by [Jón Schlipf](https://github.com/jonschlipf/). [1] The original repository is [here](https://github.com/jonschlipf/RigorousCoupledWaveAnalysis.jl).** It implements the Enhanced Transmission Matrix algorithm [4] by Moharam.
+
+My contribution is the CUDA counterpart of the ETM algorithm for better performance. The result is satisfactory -- one of the two major bottleneck involving the calculation of `A\b` has been accelerated 10x ~ 100x in my implementation. Unfortuanately, up to now `cuSolver` does not support non-Hermitian (dense) matrix eigen decomposition, which is the other major bottleneck. Due to this limitation, the CUDA optimization of this package can be further improved. It is less likely that the ETM algorithm can be adapted so that all the matrices to be eigen-decomposed are Hermitian. Rather, one should use a faster eigensolver to overcome this bottleneck. However, neither NVidia nor I are able to provide a CUDA version for the LAPACK eigen decomposition routine. I leave the eigen-decomposition bottleneck for future work.
+
+The implementation is based on [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl). This Julia package has two useful features for the present project. The CUDA libraries `cuBlas` and `cuSolver` are seamlessly integrated into Julia by `CUDA.jl`, allowing the user to call the available CUDA routines with in-place modification of the CPU code. `CUDA.jl` also provides convenient memory management with [stream-ordered memory allocations](https://developer.nvidia.com/blog/using-cuda-stream-ordered-memory-allocator-part-1/), simplifying the CUDA programming with Julia. One big feature, which is not used in this project, is that `CUDA.jl` enables the user to write CUDA kernels directly in native Julia language. The kernel is translated and compiled automatically. This is why the package was named `CUDAnative.jl` in its earlier versions.
+
+The CUDA part of my implementation has been tested against the CPU code and it is production-ready. 
+I have adapted the code in the example folder to perform the GPU vs CPU test. 
+Please check the last two sections in the [`test/runtests.jl`](./test/runtests.jl) for details.
+
+------ 
+ 
+ . 
+   
+.
+
+------ 
+
+
+## Install NVidia Cuda toolkit, Julia and CUDA.jl
+
+Working with this package requires proper installation of NVidia Cuda toolkit, Julia and `CUDA.jl`. Here are the guides to
++ [install NVidia Cuda toolkit](https://docs.nvidia.com/cuda/index.html#installation-guides)
++ [install Julia](https://julialang.org/downloads/platform/)
++ [install a Julia package](https://docs.julialang.org/en/v1/stdlib/Pkg/)
+
+---
+
+## Enable GPU acceleration
+
+The GPU acceleration is by default DISABLED. To enable, simply set the keyword argument  ` use_gpu = true `  and pass it to the function `rcwagrid()` when setting up the grid for RCWA calculation. This will create a `RCWAGrid` object with `V0` field of type `CuArray`. Passing such an object to the subsequent functions in a calculation will automatically triggers the GPU acceleration.  
+
+---
+**Sections below are written by [Jón Schlipf](https://github.com/jonschlipf/).**
+
+---
 
 ## Modeling
 
@@ -24,14 +60,14 @@ M2=InterpolPerm(E) #model with interpolated permittivity
 ```
 Some literature materials are already included by default. More can be incorporated on request.
 ```julia
-Si=InterpolPerm(RigorousCoupledWaveAnalysis.si_schinke) #Si from interpolated literature values
-Ge=InterpolPerm(RigorousCoupledWaveAnalysis.ge_nunley) #Ge from interpolated literature values
-SiO2=ModelPerm(RigorousCoupledWaveAnalysis.sio2_malitson) #SiO2 from literature dispersion formula
-Al=ModelPerm(RigorousCoupledWaveAnalysis.al_rakic) #Al from literature dispersion formula
+Si=InterpolPerm(RigorousCoupledWaveAnalysisCUDA.si_schinke) #Si from interpolated literature values
+Ge=InterpolPerm(RigorousCoupledWaveAnalysisCUDA.ge_nunley) #Ge from interpolated literature values
+SiO2=ModelPerm(RigorousCoupledWaveAnalysisCUDA.sio2_malitson) #SiO2 from literature dispersion formula
+Al=ModelPerm(RigorousCoupledWaveAnalysisCUDA.al_rakic) #Al from literature dispersion formula
 ```
 ### Geometry
 
-One can specify the distribution of materials within each layer with simple geometric shapes. Currently, the package analytically implements rectangular and elliptic inclusions. Rotation and translation in the plane is also possible. All coordinates are relative to the cell size in the respective direction. For simple verification of the geometry design, the RigorousCoupledWaveAnalysis.drawable function yields the x and y coordinates of the outline. 
+One can specify the distribution of materials within each layer with simple geometric shapes. Currently, the package analytically implements rectangular and elliptic inclusions. Rotation and translation in the plane is also possible. All coordinates are relative to the cell size in the respective direction. For simple verification of the geometry design, the RigorousCoupledWaveAnalysisCUDA.drawable function yields the x and y coordinates of the outline. 
 
 ```julia
 R=Rectangle(.2,.2) #create rectangle with width and height one fifth of the cell size
@@ -40,7 +76,7 @@ R=Rotation(R,pi/4) #rotate the rectangle in the plane by 45 degrees
 E=Shift(E,.8,.1) #shift the ellipse in x-direction by 0.8 and in y-direction by 0.1
 Geo=Combination([R,E]) #combine the ellipse and rectangle into one geometry object
 Cir=Circle(480/950) #a circle with a diameter of 480 nm in a unit cell with a pitch of 950 nm
-x,y=RigorousCoupledWaveAnalysis.drawable(Geo)
+x,y=RigorousCoupledWaveAnalysisCUDA.drawable(Geo)
 ```
 
 It is also possible to compute the RCWA for arbitrary structures defined by a bit mask using the Fourier transform. Here, a reciprocal space grid is required before modeling. See the section on grids below for guidelines how to choose the grid order.
@@ -113,19 +149,19 @@ Ate=-ftm[end]-Ttm #absorption in lowest layer
 
 Local electric and magnetic (nly is an integer to select the layer in which the fields are desired) fields are obtainable via the propagating amplitudes as well:
 ```julia
-em=RigorousCoupledWaveAnalysis.eigenmodes(Grd,λ,Mdl.layers[nly])      #get the eigenmodes of propagation in the first layer (this is the nanohole array)
+em=RigorousCoupledWaveAnalysisCUDA.eigenmodes(Grd,λ,Mdl.layers[nly])      #get the eigenmodes of propagation in the first layer (this is the nanohole array)
 a,b=etm_amplitudes(ste,Mdl,Grd,λ) #get propagating wave amplitudes inside layer
 points=[100,100,10]               #set the number of points to compute in x,y,z
-E,H=RigorousCoupledWaveAnalysis.getfields(a[nly],b[nly],Mdl.layers[nly].thickness,em,Grd,points,λ) #compute the electric and magnetic field
+E,H=RigorousCoupledWaveAnalysisCUDA.getfields(a[nly],b[nly],Mdl.layers[nly].thickness,em,Grd,points,λ) #compute the electric and magnetic field
 ```
 Or via scattering matrix algorithm:
 ```julia
 using LinearAlgebra
-em=RigorousCoupledWaveAnalysis.eigenmodes(Grd,λ,Mdl.layers[nly])        #get the eigenmodes of propagation in the first layer (this is the nanohole array)
+em=RigorousCoupledWaveAnalysisCUDA.eigenmodes(Grd,λ,Mdl.layers[nly])        #get the eigenmodes of propagation in the first layer (this is the nanohole array)
 a,b=srcwa_amplitudes(ste,Mdl,Grd,λ) #get propagating wave amplitudes outside layer
 ain,bout=slicehalf(.5*[em.W\I+em.V\Grd.V0 em.W\I-em.V\Grd.V0;em.W\I-em.V\Grd.V0 em.W\I+em.V\Grd.V0]*[a[:,nly];b[:,nly]]) #get propagating wave amplitudes inside layer
 points=[100,100,10]               #set the number of points to compute in x,y,z
-E,H=RigorousCoupledWaveAnalysis.getfields(ain,bout,Mdl.layers[nly].thickness,em,Grd,points,λ) #compute the electric and magnetic field
+E,H=RigorousCoupledWaveAnalysisCUDA.getfields(ain,bout,Mdl.layers[nly].thickness,em,Grd,points,λ) #compute the electric and magnetic field
 ```
 
 ## Mathematics
