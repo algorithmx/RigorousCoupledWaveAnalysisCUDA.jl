@@ -7,7 +7,11 @@ This implements both the scattering matrix and the Enhanced Transmission Matrix 
 This is the course project for the course [CUDA Advanced Libraries](https://www.coursera.org/learn/cuda-advanced-libraries/). 
 **This package is originally developed by [Jón Schlipf](https://github.com/jonschlipf/). [1] The original repository is [here](https://github.com/jonschlipf/RigorousCoupledWaveAnalysis.jl).** It implements the Enhanced Transmission Matrix algorithm [4] by Moharam.
 
+### My contribution to the original code of `RigorousCoupledWaveAnalysis.jl`
+
 My contribution is the CUDA counterpart of the ETM algorithm for better performance. The result is satisfactory -- one of the two major bottleneck involving the calculation of `A\b` has been accelerated 10x ~ 100x in my implementation. Unfortuanately, up to now `cuSolver` does not support non-Hermitian (dense) matrix eigen decomposition, which is the other major bottleneck. Due to this limitation, the CUDA optimization of this package can be further improved. It is less likely that the ETM algorithm can be adapted so that all the matrices to be eigen-decomposed are Hermitian. Rather, one should use a faster eigensolver to overcome this bottleneck. However, neither NVidia nor I are able to provide a CUDA version for the LAPACK eigen decomposition routine. I leave the eigen-decomposition bottleneck for future work.
+
+### `CUDA.jl`
 
 The implementation is based on [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl). This Julia package has two useful features for the present project. The CUDA libraries `cuBlas` and `cuSolver` are seamlessly integrated into Julia by `CUDA.jl`, allowing the user to call the available CUDA routines with in-place modification of the CPU code. `CUDA.jl` also provides convenient memory management with [stream-ordered memory allocations](https://developer.nvidia.com/blog/using-cuda-stream-ordered-memory-allocator-part-1/), simplifying the CUDA programming with Julia. One big feature, which is not used in this project, is that `CUDA.jl` enables the user to write CUDA kernels directly in native Julia language. The kernel is translated and compiled automatically. This is why the package was named `CUDAnative.jl` in its earlier versions.
 
@@ -15,11 +19,11 @@ The CUDA part of my implementation has been tested against the CPU code and it i
 I have adapted the code in the example folder to perform the GPU vs CPU test. 
 Please check the last two sections in the [`test/runtests.jl`](./test/runtests.jl) for details.
 
------- 
- 
- . 
-   
-.
+### Proof of run
+
+I use the ubuntu tool script to record the command line, as a proof of run. [Here is a tutorial](https://www.howtogeek.com/devops/how-to-record-linux-terminal-commands-with-script/) for how to replay.
+
+The session recording file is in the [./course_related](./course_related/) folder.
 
 ------ 
 
