@@ -1,9 +1,9 @@
 
-#=
+"""
 Lion Augel, Yuma Kawaguchi, Stefan Bechler, Roman Körner, Jörg Schulze, Hironaga Uchida and Inga A. Fischer,
 "Integrated Collinear Refractive Index Sensor with Ge PIN Photodiodes,"
 ACS Photonics 2018, 5, 11, 4586-4593 (2018)
-=#
+"""
 using RigorousCoupledWaveAnalysisCUDA
 Si=InterpolPerm(RigorousCoupledWaveAnalysisCUDA.si_schinke) #Si from interpolated literature values
 Ge=InterpolPerm(RigorousCoupledWaveAnalysisCUDA.ge_nunley) #Ge from interpolated literature values
