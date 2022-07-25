@@ -184,11 +184,11 @@ function etm_reftra(ψin,grd::RCWAGrid,λ,ems,sup,sub)
 end
 function etm_reftra(ψin,m::RCWAModel,grd::RCWAGrid,λ)
     # println("etm_reftra():")
-    CUDA.@time ems = eigenmodes(grd,λ,m.layers)
+    ems = eigenmodes(grd,λ,m.layers)
     ug = (grd.V0 isa CuArray)
     tra = halfspace(grd.Kx,grd.Ky,m.εsub,λ;use_gpu=ug)
     ref = halfspace(grd.Kx,grd.Ky,m.εsup,λ;use_gpu=ug)
-    CUDA.@time R, T = etm_reftra(ψin,grd,λ,ems,ref,tra)
+    R, T = etm_reftra(ψin,grd,λ,ems,ref,tra)
     # println("---")
     return R, T
 end
@@ -221,11 +221,11 @@ function etm_reftra_flows(s,m::RCWAModel,grd::RCWAGrid,λ,ems,sup,sub)
 end
 function etm_reftra_flows(s,m::RCWAModel,grd::RCWAGrid,λ)
     # println("etm_reftra_flows()")
-    CUDA.@time  ems=eigenmodes(grd,λ,m.layers)
+    ems=eigenmodes(grd,λ,m.layers)
     ug = (grd.V0 isa CuArray)
     ref=halfspace(grd.Kx,grd.Ky,m.εsup,λ;use_gpu=ug)
     tra=halfspace(grd.Kx,grd.Ky,m.εsub,λ;use_gpu=ug)
-    CUDA.@time  R,T,flw=etm_reftra_flows(s,m,grd,λ,ems,ref,tra)
+    R,T,flw=etm_reftra_flows(s,m,grd,λ,ems,ref,tra)
     # println("---")
     return R,T,flw
 end
@@ -252,11 +252,11 @@ function etm_amplitudes(ψin,m::RCWAModel,grd::RCWAGrid,λ::Real,em,sup,sub)
 end	
 function etm_amplitudes(ψin,m::RCWAModel,grd::RCWAGrid,λ::Real)
     # println("etm_amplitudes()")
-    CUDA.@time ems = eigenmodes(grd,λ,m.layers) 	#layer eigenmodes
+    ems = eigenmodes(grd,λ,m.layers) 	#layer eigenmodes
     ug = (grd.V0 isa CuArray)
     ref=halfspace(grd.Kx,grd.Ky,m.εsup,λ;use_gpu=ug) #superstrate
     tra=halfspace(grd.Kx,grd.Ky,m.εsub,λ;use_gpu=ug) #substrate
-    CUDA.@time a,b = etm_amplitudes(ψin,m,grd,λ,ems,ref,tra)
+    a,b = etm_amplitudes(ψin,m,grd,λ,ems,ref,tra)
     # println("---")
     return a,b
 end
