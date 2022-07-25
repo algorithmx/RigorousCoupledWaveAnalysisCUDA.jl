@@ -34,7 +34,7 @@ function scatMatrices(m::RCWAModel,g::RCWAGrid,λ;use_gpu=false)
     s[end] = scattermatrix_tra(halfspace(g.Kx,g.Ky,m.εsub,λ;use_gpu=use_gpu),g.V0) # substrate
     for cnt=2:length(m.layers)+1
         # layers in between
-        s[cnt] = scattermatrix_layer(eigenmodes(g,λ,m.layers[cnt-1];use_gpu=use_gpu), g.V0) 
+        s[cnt] = scattermatrix_layer(eigenmodes(g,λ,m.layers[cnt-1]), g.V0) 
     end
     return s
 end

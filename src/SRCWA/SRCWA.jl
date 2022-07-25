@@ -72,10 +72,10 @@ lation)
 """
 function srcwa_amplitudes(ψin,m::RCWAModel,grd::RCWAGrid,λ;use_gpu=false)
     # compute scattering matrices of layers
-	mtr=[scattermatrix_layer(eigenmodes(grd,λ,l;use_gpu=use_gpu),grd.V0;use_gpu=use_gpu) 
+	mtr=[scattermatrix_layer(eigenmodes(grd,λ,l),grd.V0) 
          for l in m.layers] 
-	ref=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsup,λ;use_gpu=use_gpu),grd.V0;use_gpu=use_gpu) 
-	tra=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsub,λ;use_gpu=use_gpu),grd.V0;use_gpu=use_gpu)
+	ref=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsup,λ),grd.V0) 
+	tra=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsub,λ),grd.V0)
 	mtr=cat(ref,mtr,tra,dims=1) # store all matrices in an array
 	a,b=srcwa_amplitudes(ψin,grd,mtr)
 	return a,b
