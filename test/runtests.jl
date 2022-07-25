@@ -1,4 +1,5 @@
-using RigorousCoupledWaveAnalysis,LinearAlgebra
+using RigorousCoupledWaveAnalysisCUDA
+using LinearAlgebra
 using Test
 include("analytical.jl")
 @testset "VerticalIncidence" begin
@@ -60,9 +61,9 @@ n1=1+10rand()+10rand()*1im
 α=360rand()
 grd=rcwagrid(0,0,100rand(),100rand(),θ,α,λ,ConstantPerm(n1^2))
 ste,stm=rcwasource(grd,real(n1))
-ref=RigorousCoupledWaveAnalysis.halfspace(grd.Kx,grd.Ky,ConstantPerm(n1^2),λ)
-P1=-RigorousCoupledWaveAnalysis.a2p(ste,0ste,ref.V,I,grd.k0[3])
-P2=-RigorousCoupledWaveAnalysis.a2p(stm,0ste,ref.V,I,grd.k0[3])
+ref=RigorousCoupledWaveAnalysisCUDA.halfspace(grd.Kx,grd.Ky,ConstantPerm(n1^2),λ)
+P1=-RigorousCoupledWaveAnalysisCUDA.a2p(ste,0ste,ref.V,I,grd.k0[3])
+P2=-RigorousCoupledWaveAnalysisCUDA.a2p(stm,0ste,ref.V,I,grd.k0[3])
 @test P1≈1
 @test P2≈1
 end
@@ -114,8 +115,8 @@ end
 
 @testset "ETM_algorithm_with_GPU_ma2018" begin
 #required materials
-ge=InterpolPerm(RigorousCoupledWaveAnalysis.ge_nunley) #Ge from interpolated measured values
-ox=ModelPerm(RigorousCoupledWaveAnalysis.sio2_malitson) #SiO2 from dispersion formula
+ge=InterpolPerm(RigorousCoupledWaveAnalysisCUDA.ge_nunley) #Ge from interpolated measured values
+ox=ModelPerm(RigorousCoupledWaveAnalysisCUDA.sio2_malitson) #SiO2 from dispersion formula
 air=ConstantPerm(1.0) #superstrate material is air
 #parameters of structure and kgrid
 N=4 #accuracy
@@ -193,12 +194,12 @@ end
 
 
 @testset "ETM_algorithm_with_GPU_augel2018" begin
-Si=InterpolPerm(RigorousCoupledWaveAnalysis.si_schinke) #Si from interpolated literature values
-Ge=InterpolPerm(RigorousCoupledWaveAnalysis.ge_nunley) #Ge from interpolated literature values
-SiO2=ModelPerm(RigorousCoupledWaveAnalysis.sio2_malitson) #SiO2 from literature dispersion formula
+Si=InterpolPerm(RigorousCoupledWaveAnalysisCUDA.si_schinke) #Si from interpolated literature values
+Ge=InterpolPerm(RigorousCoupledWaveAnalysisCUDA.ge_nunley) #Ge from interpolated literature values
+SiO2=ModelPerm(RigorousCoupledWaveAnalysisCUDA.sio2_malitson) #SiO2 from literature dispersion formula
 n_H2O=1.321
 n_CH3COOH=1.353 #Constant refractive indices
-Al=ModelPerm(RigorousCoupledWaveAnalysis.al_rakic) #Al from dispersion formula
+Al=ModelPerm(RigorousCoupledWaveAnalysisCUDA.al_rakic) #Al from dispersion formula
 N=6 #one needs much larger N (~11 is good, 15 is better) here for accurate results
 wls=1100:100:1600 #wavelength array, 20x step size
 p=950 #pitch
