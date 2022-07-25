@@ -20,7 +20,7 @@ Structure to store a grid for RCWA computation
 * `V0` : Magnetic eigenstate of free space
 * `Kz0` : Wave vector in y, free space
 """
-struct RCWAGrid
+mutable struct RCWAGrid
 	Nx::Int64
 	Ny::Int64
     nx::Array{Int64,1}
@@ -32,7 +32,7 @@ struct RCWAGrid
     Kx::Diagonal{Complex{ftype},Array{Complex{ftype},1}}
     Ky::Diagonal{Complex{ftype},Array{Complex{ftype},1}}
     k0::Array{ftype,1}
-    V0::AbstractArray{Complex{ftype},2}
+    V0::AbstractArray{Complex{ftype},2} #TODO GPU : this is an instruction for CPU/GPU
     Kz0::Diagonal{Complex{ftype},Array{Complex{ftype},1}}
 end
 """
@@ -77,8 +77,8 @@ function kgrid(nx::Array{Int64,1},ny::Array{Int64,1},px::Real,py::Real,θ::Real,
     #The incoming wave, transformed from spherical coordinates to normalized cartesian coordinates, |k0|=1
     k0=[sin(θ*π/180)*cos(α*π/180),sin(θ*π/180)*sin(α*π/180),cos(θ*π/180)]*real(sqrt(get_permittivity(sup,λ)))
     #the spatial vectors are the sum of the incoming vector and the reciprocal lattice vectors
-    kx=k0[1].+real(λ)*nx/px;
-    ky=k0[2].+real(λ)*ny/py;
+    kx=k0[1].+(λ/px).*nx;
+    ky=k0[2].+(λ/py).*ny;
     #need matrix for later computations
     Kx=Diagonal(kx)
     Ky=Diagonal(ky)
@@ -94,20 +94,26 @@ Computes the eigenmodes of propagation through free space, for normalization
 * `V0`: coordinate transform between free space eigenmode amplitude and magnetic field
 * `Kz0`: z-axis component of the propagation vector in free space
 """
-function modes_freespace(Kx::Diagonal{Complex{ftype},Array{Complex{ftype},1}},Ky::Diagonal{Complex{ftype},Array{Complex{ftype},1}})
-    #just because |k|=1
-    Kz0=sqrt.(Complex.(I-Kx*Kx-Ky*Ky))
-	Kz0[imag.(Kz0).<0].*=-1
+function modes_freespace(
+    Kx::Diagonal{Complex{ftype},Array{Complex{ftype},1}},
+    Ky::Diagonal{Complex{ftype},Array{Complex{ftype},1}};
+    use_gpu=false
+    )
+    # TODO special case of halfspace, with empty material
+    # just because |k|=1
+    Kz0 = sqrt.(Complex.(I-Kx*Kx-Ky*Ky))
+	Kz0[imag.(Kz0).<0] .*= -1
+
+    array_creator = use_gpu ? CuArray : x->x
 
     #P0 is identity
-    Q0=[Kx*Ky I-Kx*Kx;Ky*Ky-I -Ky*Kx]
+    Q0 = array_creator([(Kx*Ky)  (I-Kx*Kx);  (Ky*Ky-I)  (-Ky*Kx)])
     #propagation
-
-    q0=Diagonal(Matrix([1im*Kz0 0I;0I 1im*Kz0]))
-
+    q0 = Diagonal([1im.*diag(Kz0) ; 1im.*diag(Kz0)])
     #Free space, so W is identity
-    V0=Q0/q0
-    return V0,Kz0
+    V0 = Q0 / array_creator(q0)
+
+    return V0, Kz0
 end
 """
 	rcwagrid(Nx,Ny,px,py,θ,α,λ,sup)
@@ -121,13 +127,14 @@ Create a reciprocal space grid for RCWA simulation
 * `α` : azimuth angle of incoming wave
 * `λ` : wavelength
 * `sup` : superstrate material
+* `use_gpu` : true if use GPU
 # Outputs
 * `grd`: RCWA grid struct
 """
-function rcwagrid(Nx::Int64,Ny::Int64,px::Real,py::Real,θ::Real,α::Real,λ::Real,sup)
-    nx,ny,dnx,dny=ngrid(Nx,Ny)
-    Kx,Ky,k0=kgrid(nx,ny,px,py,θ,α,λ,sup)
-    V0,Kz0=modes_freespace(Kx,Ky)
+function rcwagrid(Nx::Int64,Ny::Int64,px::Real,py::Real,θ::Real,α::Real,λ::Real,sup;use_gpu=false)
+    nx, ny, dnx, dny = ngrid(Nx,Ny)
+    Kx, Ky, k0 = kgrid(nx,ny,px,py,θ,α,λ,sup)
+    V0, Kz0 = modes_freespace(Kx,Ky;use_gpu=use_gpu)
 	return RCWAGrid(Nx,Ny,nx,ny,dnx,dny,px,py,Kx,Ky,k0,V0,Kz0)
 end
 """
@@ -147,19 +154,20 @@ function rcwasource(grd,nsup=1) #nsup specification is deprecated here
     #vertical
     normal=[0,0,1]
     #te polarization E-field is perpendicular with z-axis and propagation direction (so, parallel with surface)
-    kte=cross(normal,kin)/norm(cross(normal,kin)
-)
+    kte=cross(normal,kin)/norm(cross(normal,kin))
     #tm polarization E-field is perpendicular with te and propagation direction (so, not necessarily parallel with surface)
     ktm=cross(kin,kte)/norm(cross(kin,kte))
 	#initialize array
     ψ0te=zeros(width*2)*1im
 	#prefill the 0th scattering order elements for x and y
-    ψ0te[convert(Int64,(width+1)/2)]=kte[1]
-    ψ0te[convert(Int64,(width+1)/2)+width]=kte[2]
+    halfwidth = convert(Int64,(width+1)/2)
+    ψ0te[halfwidth]=kte[1]
+    ψ0te[halfwidth+width]=kte[2]
 	#same for tm
     ψ0tm=zeros(width*2)*1im
-    ψ0tm[convert(Int64,(width+1)/2)]=ktm[1]
-    ψ0tm[convert(Int64,(width+1)/2)+width]=ktm[2]
-    return ψ0te,ψ0tm
+    ψ0tm[halfwidth]=ktm[1]
+    ψ0tm[halfwidth+width]=ktm[2]
+    array_converter = (grd.V0 isa CuArray) ? CuArray : x->x
+    return array_converter(ψ0te), array_converter(ψ0tm)
 end
 

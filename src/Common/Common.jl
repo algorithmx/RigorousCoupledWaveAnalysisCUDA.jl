@@ -2,15 +2,20 @@
 
 module  Common
 using LinearAlgebra
+using CUDA
 include("ft2d.jl")
 include("materials.jl")
 include("models.jl")
 include("grids.jl")
-export Eigenmodes,Halfspace
-export eigenmodes,halfspace
-export a2e,a2e2d,a2p,e2p,slicehalf,getfields,a2p2
+export Eigenmodes, Halfspace
+export eigenmodes, halfspace
+export a2e, a2e2d, a2p, e2p, getfields, a2p2
+export a_over_b, take_a, take_b, slicehalf
+export upload, download
+@inline showcumat(A,name="") = println("name = $(name) , size = $(A.dims) , offset = $(A.offset) , maxsize = $(A.maxsize)\nstorage = $(A.storage)")
+
 """
-	Eigenmodes(V,W,X,q)
+    Eigenmodes(V,W,X,q)
 
 Structure to store the eigenmodes of a layer
 # Attributes
@@ -19,22 +24,23 @@ Structure to store the eigenmodes of a layer
 * `X` : Factor for propagating amplitude vector
 * `q` : Pseudo wave vector
 """
-struct Eigenmodes
+mutable struct Eigenmodes
     V::AbstractArray{Complex{Float64},2} #Transform towards magnetic fields
     W::AbstractArray{Complex{Float64},2} #Transform towards electric fields
     X::AbstractArray{Complex{Float64},2} #Propagation of the amplitude vector through the layer
     q::AbstractArray{Complex{Float64},2} #pseudo wave vector
-
 end
+upload(em::Eigenmodes) = Eigenmodes(CuArray(em.V),CuArray(em.W),CuArray(em.X),CuArray(em.q))
+download(em::Eigenmodes) = Eigenmodes(Array(em.V),Array(em.W),Array(em.X),Array(em.q))
 """
-	Halfspace(V,Kz)
+    Halfspace(V,Kz)
 
 Structure to store the eigenmodes of a layer
 # Attributes
 * `V` : Magnetic field eigenstate
 * `Kz` : z component of the wave vector in the medium
 """
-struct Halfspace
+mutable struct Halfspace
     Kz::AbstractArray{Complex{Float64},2} #z-component of the wave vector in the medium
     V::AbstractArray{Complex{Float64},2}  #Transform towards magnetic fields. W is identity anyway.
 end
@@ -54,85 +60,94 @@ Compute the eigenmodes of a layer
 # Outputs
 * `em` : Eigenmode object
 """
-function eigenmodes(dnx,dny,Kx,Ky,λ,l::PatternedLayer)
+function eigenmodes(dnx,dny,Kx,Ky,λ,l::PatternedLayer;use_gpu=false)::Eigenmodes
     k0=2π/real(λ)
-	#get the base permittivity
-    εxx=get_permittivity(l.materials[1],λ,1)*I
+    # get the base permittivity
+    εxx = get_permittivity(l.materials[1],λ,1)*I
     if typeof(l.materials[1])<:Isotropic
     else
     end
     #add the permittivity for all inclusions
-	if minimum([typeof(m)<:Isotropic for m in l.materials])
-		εxx=get_permittivity(l.materials[1],λ)*I
-	    for ct=1:length(l.geometries)
-    	    rec=reciprocal(l.geometries[ct],dnx,dny)
-        	εxx+=rec*(get_permittivity(l.materials[ct+1],λ)-get_permittivity(l.materials[ct],λ))
-		end
+    if minimum([typeof(m)<:Isotropic for m in l.materials])
+        εxx=get_permittivity(l.materials[1],λ)*I
+        for ct=1:length(l.geometries)
+            rec=reciprocal(l.geometries[ct],dnx,dny)
+            εxx+=rec*(get_permittivity(l.materials[ct+1],λ)-get_permittivity(l.materials[ct],λ))
+        end
         εzz=εyy=εxx
         εxy=εyx=0I
-	else
-		εxx=get_permittivity(l.materials[1],λ,1)*I
+    else
+        εxx=get_permittivity(l.materials[1],λ,1)*I
         εxy=get_permittivity(l.materials[1],λ,2)*I
         εyx=get_permittivity(l.materials[1],λ,3)*I
         εyy=get_permittivity(l.materials[1],λ,4)*I
         εzz=get_permittivity(l.materials[1],λ,5)*I
-	    for ct=1:length(l.geometries)
-    	    rec=reciprocal(l.geometries[ct],dnx,dny)
-        	εxx+=rec*(get_permittivity(l.materials[ct+1],λ,1)-get_permittivity(l.materials[ct],λ,1))
-			εxy+=rec*(get_permittivity(l.materials[ct+1],λ,2)-get_permittivity(l.materials[ct],λ,2))
-        	εyx+=rec*(get_permittivity(l.materials[ct+1],λ,3)-get_permittivity(l.materials[ct],λ,3))
-        	εyy+=rec*(get_permittivity(l.materials[ct+1],λ,4)-get_permittivity(l.materials[ct],λ,4))
-			εzz+=rec*(get_permittivity(l.materials[ct+1],λ,5)-get_permittivity(l.materials[ct],λ,5))
-    	end
-	end	 	
+        for ct=1:length(l.geometries)
+            rec=reciprocal(l.geometries[ct],dnx,dny)
+            εxx += rec * ( get_permittivity(l.materials[ct+1],λ,1) - get_permittivity(l.materials[ct],λ,1) )
+            εxy += rec * ( get_permittivity(l.materials[ct+1],λ,2) - get_permittivity(l.materials[ct],λ,2) )
+            εyx += rec * ( get_permittivity(l.materials[ct+1],λ,3) - get_permittivity(l.materials[ct],λ,3) )
+            εyy += rec * ( get_permittivity(l.materials[ct+1],λ,4) - get_permittivity(l.materials[ct],λ,4) )
+            εzz += rec * ( get_permittivity(l.materials[ct+1],λ,5) - get_permittivity(l.materials[ct],λ,5) )
+        end
+    end
     #reciprocal of permittivity
     η=I/εzz
-    # η=I/εxx
+
+    ## --------- BEWARE OF CuArray BELOW  ## ---------
+    array_converter = use_gpu ? CuArray : x->x
+
     #Maxwell equations transformed
-    #this is old code
-	#P=[Kx*η*Ky I-Kx*η*Kx;Ky*η*Ky-I -Ky*η*Kx]
-    Q=[Kx*Ky+εyx εyy-Kx*Kx;Ky*Ky-εxx -εxy-Ky*Kx]
-    #M=Matrix(P*Q)
-	#analytic multiplication can speed things up:
-	A=η*(Ky*εyx+Kx*εxx)
-	B=η*(Ky*εyy+Kx*εxy)
-	M=[Ky.^2-εxx+Kx*A -Ky*Kx-εxy+Kx*B;-Kx*Ky-εyx+Ky*A Kx.^2-εyy+Ky*B]
-	#eigenmodes
-    ev=eigen(M)
-    q=Diagonal(sqrt.(Complex.(ev.values)))
-	#select negative root
-    q[real.(q).>0].*=-1
+    Q = [(Kx*Ky+εyx)  (εyy-Kx*Kx);  (Ky*Ky-εxx)  (-εxy-Ky*Kx)] |> array_converter
+    if use_gpu
+        P = CuArray([(Kx*η*Ky)  (I-Kx*η*Kx);  (Ky*η*Ky-I)  (-Ky*η*Kx)])
+        M = P*Q
+    else
+        # analytic multiplication can speed things up:
+        A = η*(Ky*εyx+Kx*εxx)
+        B = η*(Ky*εyy+Kx*εxy)
+        # non-hermitian, dense matrix of dimension 2*(2N)^2 where N is the precsion 
+        M = [(Ky.^2-εxx+Kx*A)  (-Ky*Kx-εxy+Kx*B); (-Kx*Ky-εyx+Ky*A)  (Kx.^2-εyy+Ky*B)]
+    end
+
+    ev = eigen(Matrix(M)) # bottleneck #1, CUDA.jl cannot help
+    q = sqrt.(Complex.(ev.values))
+    q[real.(q).>0].*=-1  # select negative root
+
     #W is transform between amplitude vector and E-Field
-    W=ev.vectors
+    W = ev.vectors |> array_converter
     #V is transform between amplitude vector and H-Field
-    V=Q*W/Diagonal(q)
+    V = (Q*W)/array_converter(Diagonal(q)) # TODO bottleneck #3
     #X the factor applied to the amplitudes when propagatin through the layer
-    X=exp(Diagonal(q*k0*l.thickness))
-    #create struct
-    return Eigenmodes(V,W,X,q)
+    X = Diagonal(exp.(q*k0*l.thickness)) |> array_converter
+    #use_gpu && (synchronize())
+    return Eigenmodes(V,W,X,Diagonal(q))
 end
-function eigenmodes(dnx,dny,Kx,Ky,λ,l::SimpleLayer)
-	k0=2π/real(λ)
-	#permittivity tensor
-    ε=get_permittivity(l.material,λ)*I
-	#z component
-    Kz=sqrt.(Complex.(ε-Kx*Kx-Ky*Ky))
-    q=[1im*Kz 0I;0I 1im*Kz]
-    q[real.(q).>0].*=-1
-	#magnetic field eigenmodes
-    Q=[Kx*Ky ε-Kx*Kx;Ky*Ky-ε -Ky*Kx]
-    V=Q/Diagonal(q)
-    #W is identity
-    W=I+0*V
-	#amplitude propagation
-    X=exp(Diagonal(q*k0*l.thickness))
-    return Eigenmodes(V,W,X,q)
-end
-function eigenmodes(dnx,dny,Kx,Ky,λ,l::AnisotropicLayer)
+function eigenmodes(dnx,dny,Kx,Ky,λ,l::SimpleLayer;use_gpu=false)::Eigenmodes
     k0=2π/real(λ)
-	#permittivity tensor
-	εxx=get_permittivity(l.material,λ,1)*I
-	#anisotropy
+    #permittivity tensor for SimpleLayer
+    ε = get_permittivity(l.material,λ)*I
+    #z component
+    Kz = sqrt.(Complex.(ε - Kx*Kx - Ky*Ky))
+    q = [1im*diag(Kz) ; 1im*diag(Kz)]
+    q[real.(q).>0].*=-1
+    # 
+    array_converter = use_gpu ? CuArray : Array # prevent sparse
+    Q = [Kx*Ky  ε-Kx*Kx;  Ky*Ky-ε  -Ky*Kx] |> array_converter
+    #magnetic field eigenmodes
+    V = Q / array_converter(Diagonal(q)) # not diagonal 
+    # W is identity
+    W = array_converter(one(V)) # diagonal 
+    # amplitude propagation
+    X = Diagonal(exp.(q*k0*l.thickness)) |> array_converter
+    #use_gpu && (synchronize())
+    return Eigenmodes(V,W,X,Diagonal(q))
+end
+function eigenmodes(dnx,dny,Kx,Ky,λ,l::AnisotropicLayer;use_gpu=false)::Eigenmodes
+    k0=2π/real(λ)
+    #permittivity tensor
+    εxx=get_permittivity(l.material,λ,1)*I
+    #anisotropy
     if typeof(l.material)<:Isotropic
         εzz=εyy=εxx
         εxy=εyx=0I
@@ -144,26 +159,44 @@ function eigenmodes(dnx,dny,Kx,Ky,λ,l::AnisotropicLayer)
     end
     η=I/εzz
     #Maxwell equations transformed
-    P=[Kx*η*Ky I-Kx*η*Kx;Ky*η*Ky-I -Ky*η*Kx]
-    Q=[Kx*Ky+εyx εyy-Kx*Kx;Ky*Ky-εxx -εxy-Ky*Kx]
-    #eigenmodes
-    ev=eigen(Matrix(P*Q))
-    q=Diagonal(sqrt.(Complex.(ev.values)))
-	#select negative root
-    q[real.(q).>0].*=-1
-    #W is transform between amplitude vector and E-Field
-    W=ev.vectors
-    #V is transform between amplitude vector and H-Field
-    V=Q*W/Diagonal(q)
-    #X the factor applied to the amplitudes when propagatin through the layer
-    X=exp(Diagonal(q*k0*l.thickness))
-    #create struct
-    return Eigenmodes(V,W,X,q)
+    if use_gpu
+        P = CuArray([(Kx*η*Ky)   (I-Kx*η*Kx); (Ky*η*Ky-I)  (-Ky*η*Kx)])
+        Q = CuArray([(Kx*Ky+εyx) (εyy-Kx*Kx); (Ky*Ky-εxx)  (-εxy-Ky*Kx)])
+        M = P*Q
+    else
+        # analytic multiplication can speed things up:
+        Q = [(Kx*Ky+εyx) (εyy-Kx*Kx); (Ky*Ky-εxx)  (-εxy-Ky*Kx)]
+        A = η*(Ky*εyx+Kx*εxx)
+        B = η*(Ky*εyy+Kx*εxy)
+        # non-hermitian, dense matrix of dimension 2*(2N)^2 where N is the precsion 
+        M = [(Ky.^2-εxx+Kx*A)  (-Ky*Kx-εxy+Kx*B); (-Kx*Ky-εyx+Ky*A)  (Kx.^2-εyy+Ky*B)]
+    end
+
+    ev = eigen(Matrix(M)) # bottleneck #1, CUDA.jl cannot help
+    q = sqrt.(Complex.(ev.values))
+    q[real.(q).>0].*=-1  #  select negative root
+
+    if use_gpu
+        #W is transform between amplitude vector and E-Field
+        W = CuArray(ev.vectors)
+        #V is transform between amplitude vector and H-Field
+        V = (Q*W)/CuArray(Diagonal(q)) # TODO bottleneck #3
+        #X the factor applied to the amplitudes when propagatin through the layer
+        X = CuArray(Diagonal(exp.(q*(k0*l.thickness))))
+    else
+        #W is transform between amplitude vector and E-Field
+        W = ev.vectors
+        #V is transform between amplitude vector and H-Field
+        V = Q*W/Diagonal(q) # TODO bottleneck #3
+        #X the factor applied to the amplitudes when propagatin through the layer
+        X = Diagonal(exp.(q*(k0*l.thickness)))
+    end
+    return Eigenmodes(V,W,X,Diagonal(q))
 end
-function eigenmodes(g::RCWAGrid,λ,l::Layer)
-    return eigenmodes(g.dnx,g.dny,g.Kx,g.Ky,λ,l)
+function eigenmodes(g::RCWAGrid,λ,l::Layer)::Eigenmodes
+    return eigenmodes(g.dnx,g.dny,g.Kx,g.Ky,λ,l; use_gpu=(g.V0 isa CuArray))
 end
-function eigenmodes(g::RCWAGrid,λ,l::Array{Layer,1})
+function eigenmodes(g::RCWAGrid,λ,l::Vector{Layer})::Vector{Eigenmodes}
     #initialize array
     rt=Array{Eigenmodes,1}(undef,length(l))
     #iterate through layers
@@ -181,14 +214,15 @@ Compute the eigenmodes of a halfspace
 * `Ky` : ky component of the wave vector in reciprocal space
 * `material` : medium
 * `λ` : wavelength
+* `use_gpu` : true if use GPU
 # Outputs
 * `em` : halfspace eigenmode object
 """
-function halfspace(Kx,Ky,material,λ)
+function halfspace(Kx,Ky,material,λ; use_gpu=false)::Halfspace
     #Base value
-	εxx=real(sqrt(get_permittivity(material,λ,1)))^2*I
+    εxx=real(sqrt(get_permittivity(material,λ,1)))^2*I
     #probably add off-diagonal elements
-	if typeof(material)<:Isotropic
+    if typeof(material)<:Isotropic
         εzz=εyy=εxx
         εxy=εyx=0I
     else
@@ -197,15 +231,16 @@ function halfspace(Kx,Ky,material,λ)
         εyy=get_permittivity(material,λ,4)*I
         εzz=get_permittivity(material,λ,5)*I
     end
-	#z component of wave vector
-	Kz=sqrt.(Complex.(εzz-Kx*Kx-Ky*Ky))
-	Kz[imag.(Kz).<0].*=-1
-	#simple solution like free space
-    q0=[1im*Kz 0I;0I 1im*Kz]
-	#Magnetic field eigenvalues
-    Q=[Kx*Ky+εyx εyy-Kx*Kx;Ky*Ky-εxx -εxy-Ky*Kx]
-    V=Q/Diagonal(q0)
-    return Halfspace(Kz,V)
+    #z component of wave vector
+    Kz = sqrt.(Complex.(εzz-Kx*Kx-Ky*Ky))
+    Kz[imag.(Kz).<0].*=-1
+    #simple solution like free space
+    q0 = [1im*diag(Kz); 1im*diag(Kz)]
+    Q0 = [(Kx*Ky+εyx)  (εyy-Kx*Kx);  (Ky*Ky-εxx)  (-εxy-Ky*Kx)]
+    #Magnetic field eigenvalues
+    array_converter = use_gpu ? x->CuArray(Matrix(x)) : x->x
+    V = array_converter(Q0) / array_converter(Diagonal(q0))
+    return Halfspace(Kz, V)
 end
 
 """
@@ -218,11 +253,14 @@ Utility function, just slices a vector in two vectors of half length
 * `v1` : upper half of v
 * `v2` : lower half of v
 """
-function slicehalf(v)
-    mylength=convert(Int64,size(v,1)/2)
-    return v[1:mylength,:],v[mylength+1:end,:]
-end
-
+# function slicehalf(v)
+#     mylength=convert(Int64,size(v,1)/2)
+#     return v[1:mylength,:],v[mylength+1:end,:]
+# end
+@inline slicehalf(v) = v[1:size(v,1)÷2,:], v[size(v,1)÷2+1:end,:]
+@inline take_a(v) = v[1:size(v,1)÷2,:]
+@inline take_b(v) = v[size(v,1)÷2+1:end,:]
+@inline a_over_b(v) = take_a(v)/take_b(v) # calls \ via generic.jl
 """
     e2p(ex,ey,ez,Kz,kz0)
 
@@ -295,11 +333,15 @@ This is a "light" version of the "a2e" method.
 * `ex` : x-component of the electric field
 * `ey` : y-component of the electric field
 """
-function a2e2d(a,W)
-    e=W*a
-	#e contains both components
-    ex,ey=slicehalf(e)
-    return ex,ey
+a2e2d(a::Vector, W::AbstractArray) = slicehalf(Matrix(W) * a)
+a2e2d(a::Matrix, W::AbstractArray) = slicehalf(Matrix(W) * a)
+function a2e2d(a::CuArray, W::CuArray)
+    ex,ey = slicehalf(W * a)
+    return Array(ex), Array(ey)
+end
+function a2e2d(a, X::UniformScaling)
+    ex,ey = slicehalf(X.λ .* Array(a))
+    return Array(ex), Array(ey)
 end
 
 """
@@ -318,8 +360,8 @@ converts an amplitude vector (in substrate or superstrate) to reciprocal-space e
 * `ez` : z-component of the electric field
 """
 function a2e(a,W,Kx,Ky,Kz)
-	ex,ey=a2e2d(a,W)
-	#Plane wave, E⊥k, E*k=0
+    ex,ey=a2e2d(a,W)
+    #Plane wave, E⊥k, E*k=0
     ez=-Kz\(Kx*ex+Ky*ey)
     return ex,ey,ez
 end
@@ -340,15 +382,15 @@ computes the electric and magnetic fields within a layer
 * `efield` : 4D tensor for the electric field (dimensions are x, y, z, and the component (E_x or E_y or E_z)
 * `hfield` : 4D tensor for the magnetic field (dimensions are x, y, z, and the component (E_x or E_y or E_z)
 """
-function getfields(ain,bout,thi,em,grd,sz,λ)
-	#create the x and y components of the real-space rectilinear grid
+function getfields(ain,bout,thi,em::Eigenmodes,grd::RCWAGrid,sz,λ)
+    #create the x and y components of the real-space rectilinear grid
     x=[r  for r in -sz[1]/2+.5:sz[1]/2-.5, c in -sz[2]/2+.5:sz[2]/2-.5]/sz[1]
     y=[c  for r in -sz[1]/2+.5:sz[1]/2-.5, c in -sz[2]/2+.5:sz[2]/2-.5]/sz[2]
-	#initialize the fields
+    #initialize the fields
     efield=zeros(size(x,1),size(y,2),sz[3],3)*1im
     hfield=zeros(size(x,1),size(y,2),sz[3],3)*1im
     #loop through z constants
-	for zind=1:sz[3]
+    for zind=1:sz[3]
         #propagation of the waves
         a=exp(Matrix(em.q*2π/λ*thi*(zind-1)/sz[3]))*ain
         b=exp(-Matrix(em.q*2π/λ*thi*(zind-1)/sz[3]))*bout

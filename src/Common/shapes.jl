@@ -60,7 +60,7 @@ function reciprocal(c::Circle,dnx,dny)
     return .25result*c.d^2
 end
 function reciprocal(r::Rectangle,dnx,dny)
-	return r.dx*r.dy*sinc.(r.dx*dnx).*sinc.(r.dy*dny)
+	return (r.dx*r.dy)*sinc.(r.dx*dnx).*sinc.(r.dy*dny)
 end
 function reciprocal(c::Custom,dnx,dny)
     return c.F

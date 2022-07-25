@@ -1,9 +1,10 @@
 #2D fourier transform (inefficient, but does the job)
 
-using SpecialFunctions,FFTW
+using SpecialFunctions
+using FFTW
 export recip2real,recipvec2real,real2recip
 """
-	real2recip(dnx,dny,f)
+    real2recip(dnx,dny,f)
 
 Converts a 2D real space pattern into a reciprocal space convolution matrix
 # Arguments
@@ -17,7 +18,7 @@ function real2recip(dnx,dny,f)
     F0=fftshift(fft(f))/length(f)
     a=Int64(ceil(size(f,1)/2+.5))
     b=Int64(ceil(size(f,2)/2+.5))
-    F=0.0im*dnx
+    F=0.0im*dnx  # TODO
     for i=1:size(F,1)
         for j=1:size(F,2)
             F[i,j]=F0[dnx[i,j]+a,dny[i,j]+b]
@@ -26,8 +27,8 @@ function real2recip(dnx,dny,f)
     return F
 end
 """
-	recip2real(dnx,dny,F)
-	recip2real(dnx,dny,F,sx,sy)
+    recip2real(dnx,dny,F)
+    recip2real(dnx,dny,F,sx,sy)
 
 Converts a reciprocal space convolution matrix into a 2D real space pattern. sx and sy can be specified to increase the image resolution. If not specified, an fft is carried out directly, and the result has the same size as the reciprocal space representation.
 # Arguments
@@ -90,7 +91,7 @@ end
 #x,y: 2D arrays of the x and y coordinate in real space
 #Output: real space image
 """
-	recipvec2real(nx,ny,F,x,y)
+    recipvec2real(nx,ny,F,x,y)
 
 Converts a reciprocal space amplitude vector into a 2D real space map.
 # Arguments
@@ -106,7 +107,7 @@ function recipvec2real(nx,ny,F,x,y)
     f=zeros(size(x))*1im
     for i=1:size(x,1)
         for j=1:size(y,2)
-			#this is a manual and awful FT, should be replaced by FFTW
+            #this is a manual and awful FT, should be replaced by FFTW
             f[i,j]=sum(F.*exp.(1im*x[i,j]*nx*2*pi+1im*y[i,j]*ny*2*pi))
         end
     end

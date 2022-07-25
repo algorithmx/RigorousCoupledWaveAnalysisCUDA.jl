@@ -23,7 +23,7 @@ An inhomogenous layer with two or more materials forming a pattern
 * `materials` : n-element array for the n materials making up the layer
 * `geometries` : (n-1)-element array specifying the patterning
 """
-struct PatternedLayer <: Layer
+mutable struct PatternedLayer <: Layer
     thickness::Float64
     materials::Array{Material,1}
     geometries::Array{Geometry,1}
@@ -36,7 +36,7 @@ A homogenous, isotropic layer
 * `t` : Layer thickness
 * `material` : material model for the permittivity of the layer
 """
-struct SimpleLayer <: Layer
+mutable struct SimpleLayer <: Layer
     thickness::Float64
     material::Material
 end
@@ -48,7 +48,7 @@ A homogenous, in-plane anisotropic layer
 * `t` : Layer thickness
 * `material` : material model for the permittivity of the layer
 """
-struct AnisotropicLayer <: Layer
+mutable struct AnisotropicLayer <: Layer
     thickness::Float64
     material::Material
 end
@@ -61,7 +61,7 @@ A structure to store the full RCWA stack including superstrate and substrate
 * `εsup` : material model for the superstrate
 * `εsub` : material model for the substrate
 """
-struct RCWAModel
+mutable struct RCWAModel
     layers::Array{Layer,1}
     εsup::Material
     εsub::Material
