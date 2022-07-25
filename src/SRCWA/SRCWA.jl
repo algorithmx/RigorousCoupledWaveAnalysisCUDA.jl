@@ -1,5 +1,7 @@
 module SRCWA
 using LinearAlgebra
+using SparseArrays
+using CUDA
 export srcwa_reftra,a2p,slicehalf,srcwa_matrices,Srcwa_matrices,srcwa_amplitudes,srcwa_flow
 
 export innerSource,dipoleRad,pointDipole
@@ -26,16 +28,23 @@ lation)
 * `T` : transmission by the device
 """
 function srcwa_reftra(ψin,model::RCWAModel,grd::RCWAGrid,λ)
-    ref=halfspace(grd.Kx,grd.Ky,model.εsup,λ) #superstrate and substrate halfspace
-    tra=halfspace(grd.Kx,grd.Ky,model.εsub,λ)
-    S=scattermatrix_ref(ref,grd.V0) #total scattering matrix of device
+    use_gpu = (grd.V0 isa CuArray)
+    ref = halfspace(grd.Kx,grd.Ky,model.εsup,λ;use_gpu=use_gpu)
+    tra = halfspace(grd.Kx,grd.Ky,model.εsub,λ;use_gpu=use_gpu)
+    # total scattering matrix of device
+    S = scattermatrix_ref(ref,grd.V0)
     for ct=1:length(model.layers)
-        S=concatenate(S,scattermatrix_layer(eigenmodes(grd.dnx,grd.dny,grd.Kx,grd.Ky,λ,model.layers[ct]),grd.V0))
+        S = concatenate(
+                S, 
+                scattermatrix_layer(
+                    eigenmodes(grd.dnx,grd.dny,grd.Kx,grd.Ky,λ,model.layers[ct];use_gpu=use_gpu),
+                    grd.V0 )
+        )
     end
-    S=concatenate(S,scattermatrix_tra(tra,grd.V0))
+    S = concatenate(S, scattermatrix_tra(tra,grd.V0))
 	kzin=grd.k0[3] # impinging wave vector z component
-	R=a2p(0ψin,S.S11*ψin,ref.V,I,kzin) # get reflected power from reflected amplitude vector
-	T=-a2p(S.S21*ψin,0ψin,tra.V,I,kzin) # get transmitted power form transmitted amplitude vector
+	R =  a2p(0ψin,S.S11*ψin,ref.V,I,kzin) # reflected power
+	T = -a2p(S.S21*ψin,0ψin,tra.V,I,kzin) # transmitted power
     return R,T
 end
 function srcwa_reftra(ψin,εsup,εsub,S,grd::RCWAGrid,λ)
@@ -61,10 +70,12 @@ lation)
 * `a` : array of forward propagating wave amplitudes
 * `b` : array of backward propagating wave amplitudes
 """
-function srcwa_amplitudes(ψin,m::RCWAModel,grd::RCWAGrid,λ)
-	mtr=[scattermatrix_layer(eigenmodes(grd,λ,l),grd.V0) for l in m.layers] #compute scattering matrices of layers
-	ref=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsup,λ),grd.V0) #superstrate and substrate halfspaces
-	tra=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsub,λ),grd.V0)
+function srcwa_amplitudes(ψin,m::RCWAModel,grd::RCWAGrid,λ;use_gpu=false)
+    # compute scattering matrices of layers
+	mtr=[scattermatrix_layer(eigenmodes(grd,λ,l;use_gpu=use_gpu),grd.V0;use_gpu=use_gpu) 
+         for l in m.layers] 
+	ref=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsup,λ;use_gpu=use_gpu),grd.V0;use_gpu=use_gpu) 
+	tra=scattermatrix_ref(halfspace(grd.Kx,grd.Ky,m.εsub,λ;use_gpu=use_gpu),grd.V0;use_gpu=use_gpu)
 	mtr=cat(ref,mtr,tra,dims=1) # store all matrices in an array
 	a,b=srcwa_amplitudes(ψin,grd,mtr)
 	return a,b

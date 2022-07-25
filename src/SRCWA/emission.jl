@@ -14,6 +14,7 @@ function innerSource(grd,jx,jy,jz,Sin,Sout,eps)
 	a0,b0=slicehalf(prvec)
 	return a0,b0
 end
+
 function dipoleRad(a0,b0,Sout,grd,sub,jx,jy,jz)
 	exb,eyb,ezb=a2e((I+Sout.S11)*a0,I,grd.Kx,grd.Ky,sub.Kz) #compute the electric field
 	#sz=[sqrt(length(grd.nx)),sqrt(length(grd.nx))]
@@ -28,6 +29,8 @@ function dipoleRad(a0,b0,Sout,grd,sub,jx,jy,jz)
 	#ru=(conj.(pxr).*exr+conj.(pyr).*eyr+conj.(pzr).*ezr)#/sqrt(get_permittivity(m1,2pi/grd.k0))
 	#au=.5*2pi/grd.k0/sqrt(grd.px*grd.py)*sum(ru)/length(ru)
 	#au=.5sum(ru)/length(ru)
-	au=1im*.5sum(conj.(jx).*exb+conj.(jy).*eyb+conj.(jz).*ezb) #compute radiated power. the 1im factor is to denormalize j
+	
+	# compute radiated power. the 1im factor is to denormalize j
+	au=1im*.5sum(conj.(jx).*exb+conj.(jy).*eyb+conj.(jz).*ezb) 
 	return au
 end

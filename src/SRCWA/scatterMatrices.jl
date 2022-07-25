@@ -12,11 +12,11 @@ Structure to store the scattering matrix of a layer or halfspace
 * `S21` : transmission matrix port 1 to port 2
 * `S22` : reflection matrix of port 2
 """
-struct ScatterMatrix
-    S11::Array{Complex{Float64},2}
-    S12::Array{Complex{Float64},2}
-    S21::Array{Complex{Float64},2}
-    S22::Array{Complex{Float64},2}
+mutable struct ScatterMatrix
+    S11::AbstractArray{Complex{Float64},2}
+    S12::AbstractArray{Complex{Float64},2}
+    S21::AbstractArray{Complex{Float64},2}
+    S22::AbstractArray{Complex{Float64},2}
 end
 """
     scatMatrices(m::RCWAModel,g::RCWAGrid,λ)
@@ -28,12 +28,13 @@ Computes the scattering matrices of the device (all layers, superstrate, and sub
 # Outputs
 * `s` : array of scattering matrices
 """
-function scatMatrices(m::RCWAModel,g::RCWAGrid,λ)
-    s=Array{ScatterMatrix,1}(undef,length(m.layers)+2) #preallocate
-    s[1]=scattermatrix_ref(halfspace(g.Kx,g.Ky,m.εsup,λ),g.V0) #superstrate
-    s[end]=scattermatrix_tra(halfspace(g.Kx,g.Ky,m.εsub,λ),g.V0) #substrate
+function scatMatrices(m::RCWAModel,g::RCWAGrid,λ;use_gpu=false)
+    s = Vector{ScatterMatrix}(undef,length(m.layers)+2) # preallocate
+    s[1]   = scattermatrix_ref(halfspace(g.Kx,g.Ky,m.εsup,λ;use_gpu=use_gpu),g.V0) # superstrate
+    s[end] = scattermatrix_tra(halfspace(g.Kx,g.Ky,m.εsub,λ;use_gpu=use_gpu),g.V0) # substrate
     for cnt=2:length(m.layers)+1
-        s[cnt]=scattermatrix_layer(eigenmodes(g,λ,m.layers[cnt-1]),g.V0) #layers in between
+        # layers in between
+        s[cnt] = scattermatrix_layer(eigenmodes(g,λ,m.layers[cnt-1];use_gpu=use_gpu), g.V0) 
     end
     return s
 end
@@ -46,14 +47,17 @@ Computes the scattering matrix of the superstrate halfspace
 # Outputs
 * `S` : scattering matrix
 """
-function scattermatrix_ref(sup::Halfspace,V0)
-	A=I+V0\Matrix(sup.V) #boundary conditions, W=W0=I
-    B=I-V0\Matrix(sup.V)
-    Ai=I/Matrix(A) #precompute inverse for speed
-	S11=-Ai*B
-   	S12=2*Ai
-   	S21=.5*(A-B*Ai*B)
-   	S22=B*Ai
+function scattermatrix_ref(sup::Halfspace,V0::Union{Matrix,SparseMatrixCSC})
+    use_gpu = (V0 isa CuArray)
+    # boundary conditions, W=W0=I
+    tmp = V0 \ Matrix(sup.V)
+	A = I + tmp
+    B = I - tmp
+    Ai = I/Matrix(A)
+	S11 = -Ai*B
+   	S12 = 2*Ai
+   	S21 = .5*(A-B*Ai*B)
+   	S22 = B*Ai
 	return ScatterMatrix(S11,S12,S21,S22)
 end
 """
@@ -65,14 +69,16 @@ Computes the scattering matrix of the substrate halfspace
 # Outputs
 * `S` : scattering matrix
 """
-function scattermatrix_tra(sub::Halfspace,V0)
-    A=I+V0\Matrix(sub.V) #boundary conditions, W=W0=I
-    B=I-V0\Matrix(sub.V)
+function scattermatrix_tra(sub::Halfspace,V0::Union{Matrix,SparseMatrixCSC})
+    # boundary conditions, W=W0=I
+    tmp = V0 \ Matrix(sub.V)
+    A=I + tmp 
+    B=I - tmp
     Ai=I/Matrix(A) #precompute inverse of A for speed
-    S11=B*Ai
-    S12=.5*(A-B*Ai*B)
-    S21=2*Ai
-    S22=-Ai*B
+    S11 = B*Ai
+    S12 = .5*(A-B*Ai*B)
+    S21 = 2*Ai
+    S22 = -Ai*B
     return ScatterMatrix(S11,S12,S21,S22)
 end
 """
@@ -84,13 +90,17 @@ Computes the scattering matrix of a layer
 # Outputs
 * `S` : scattering matrix
 """
-function scattermatrix_layer(e::Eigenmodes,V0)
-    A=Matrix(e.W)\I+(Matrix(e.V)\I)*V0 #boundary conditions, W0=I
-    B=Matrix(e.W)\I-(Matrix(e.V)\I)*V0
-    Ai=I/Matrix(A) #precompute inverse of A for speed
-    common=(A-e.X*B*Ai*e.X*B)\I #precompute this part for speed
-    S11=S22=common*(e.X*B*Ai*e.X*A-B)
-    S12=S21=common*e.X*(A-B*Ai*B)
+function scattermatrix_layer(e::Eigenmodes,V0::Union{Matrix,SparseMatrixCSC})
+    # boundary conditions, W0=I
+    # The inverse of a sparse matrix can often be dense
+    eWinv = Matrix(e.W)\I
+    eVinv = Matrix(e.V)\I
+    A = eWinv + eVinv * V0
+    B = eWinv - eVinv * V0
+    Ai = I/A
+    C = (A-e.X*B*Ai*e.X*B)\I
+    S11 = S22 = C*(e.X*B*Ai*e.X*A-B)
+    S12 = S21 = C*e.X*(A-B*Ai*B)
     return ScatterMatrix(S11,S12,S21,S22)
 end
 """
@@ -115,8 +125,10 @@ Computes the total scattering matrix for combined layers through concatenation
 * `Sout` : total scattering matrix
 """
 function concatenate(S11a,S12a,S21a,S22a,S11b,S12b,S21b,S22b)
-    S11=S11a+(S12a/(I-S11b*S22a))*S11b*S21a #direct reflection (S11a) plus infinite internal passes
-    S12=(S12a/(I-S11b*S22a))*S12b #infinite internal passes -> geometric series
+    # direct reflection (S11a) plus infinite internal passes
+    S11=S11a+(S12a/(I-S11b*S22a))*S11b*S21a 
+    # infinite internal passes -> geometric series
+    S12=(S12a/(I-S11b*S22a))*S12b 
     S21=(S21b/(I-S22a*S11b))*S21a
     S22=S22b+(S21b/(I-S22a*S11b))*S22a*S12b
     return S11,S12,S21,S22
