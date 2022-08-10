@@ -39,7 +39,7 @@ Working with this package requires proper installation of NVidia Cuda toolkit, J
 
 ## Enable GPU acceleration
 
-The GPU acceleration is by default DISABLED. To enable, simply set the keyword argument  ` use_gpu = true `  and pass it to the function `rcwagrid()` when setting up the grid for RCWA calculation. This will create a `RCWAGrid` object with `V0` field of type `CuArray`. Passing such an object to the subsequent functions in a calculation will automatically triggers the GPU acceleration.  
+The GPU acceleration is by default DISABLED. To enable, simply set the keyword argument  ` use_gpu = true `  and pass it to the function `rcwagrid()` when setting up the grid for RCWA calculation. This will create a `RCWAGrid` object with `V0` field of type `CuArray`. Passing such an object to the subsequent functions in a calculation will automatically trigger the GPU acceleration.  
 
 ---
 **Sections below are written by [Jón Schlipf](https://github.com/jonschlipf/).**
